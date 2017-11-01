@@ -13,7 +13,7 @@ c3_chart_internal_fn.initGrid = function () {
     if (config.grid_y_show) {
         $$.grid.append('g').attr('class', CLASS.ygrids);
     }
-    if (config.grid_focus_show) {
+    if (config.grid_focus_show && !config.grid_focus_lines_front) {
         $$.grid.append('g')
             .attr("class", CLASS.xgridFocus)
             .append('line')
@@ -30,6 +30,13 @@ c3_chart_internal_fn.initGridLines = function () {
     $$.gridLines.append('g').attr("class", CLASS.xgridLines);
     $$.gridLines.append('g').attr('class', CLASS.ygridLines);
     $$.xgridLines = d3.selectAll([]);
+};
+c3_chart_internal_fn.initGridFocusLines = function () {
+    var $$ = this, d3 = $$.d3;
+    $$.gridLines.append('g')
+        .attr("class", CLASS.xgridFocus)
+        .append('line')
+        .attr('class', CLASS.xgridFocus);
 };
 c3_chart_internal_fn.updateXGrid = function (withoutUpdate) {
     var $$ = this, config = $$.config, d3 = $$.d3,

@@ -301,6 +301,8 @@ c3_chart_internal_fn.initWithData = function (data) {
     // Add Axis
     $$.axis.init();
 
+    if (config.grid_focus_lines_front) { $$.initGridFocusLines(); }
+
     // Set targets
     $$.updateTargets($$.data.targets);
 

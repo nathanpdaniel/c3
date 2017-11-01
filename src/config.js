@@ -154,6 +154,7 @@ c3_chart_internal_fn.getDefaultConfig = function () {
         grid_y_lines: [],
         grid_y_ticks: 10,
         grid_focus_show: true,
+        grid_focus_lines_front: false,
         grid_lines_front: true,
         // point - point of each data
         point_show: true,
