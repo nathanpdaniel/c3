@@ -16,7 +16,11 @@ window.initDom = function () {
 window.setMouseEvent = function(chart, name, x, y, element) {
     'use strict';
 
-    var paddingLeft = chart.internal.main.node().transform.baseVal.getItem(0).matrix.e,
+    const p = chart.internal.main.node().transform;
+    if (!p) {
+        return;
+    }
+    var paddingLeft = p.baseVal.getItem(0).matrix.e,
         event = document.createEvent("MouseEvents");
     event.initMouseEvent(name, true, true, window,
                        0, 0, 0, x + paddingLeft, y + 5,
