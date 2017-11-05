@@ -8592,7 +8592,7 @@ c3_chart_internal_fn.initSubchart = function () {
 
     // SparksGrove
     var extent = context.select('.extent')[0][0];
-    if (extent) {
+    if (extent && extent.width && extent.height && extent.x) {
         context.select('#' + $$.chartExtentMaskId).html('<rect width="' + extent.width.baseVal.value + '" height="' + extent.height.baseVal.value + '" x="' + extent.x.baseVal.value + '" />');
     }
 
@@ -8714,7 +8714,7 @@ c3_chart_internal_fn.redrawSubchart = function (withSubchart, transitions, durat
 
             // SparksGrove Extent Update
             var extent = $$.context.select('.extent')[0][0];
-            if (extent) {
+            if (extent && extent.width && extent.height && extent.x) {
                 $$.context.select('#' + $$.chartExtentMaskId).html('<rect width="' + extent.width.baseVal.value + '" height="' + extent.height.baseVal.value + '" x="' + extent.x.baseVal.value + '" />');
             }
         }
@@ -8734,7 +8734,7 @@ c3_chart_internal_fn.redrawForBrush = function () {
 
     // SparksGrove - EXTENT UPDATE
     var extent = $$.context.select('.extent')[0][0];
-    if (extent) {
+    if (extent && extent.width && extent.height && extent.x) {
         $$.context.select('#' + $$.chartExtentMaskId).html('<rect width="' + extent.width.baseVal.value + '" height="' + extent.height.baseVal.value + '" x="' + extent.x.baseVal.value + '" />');
     }
 };
