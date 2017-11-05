@@ -8590,12 +8590,6 @@ c3_chart_internal_fn.initSubchart = function () {
     context.select('.' + CLASS.chart).append("defs");
     context.select('.' + CLASS.chart + ' defs').html('<clipPath id="' + $$.chartExtentMaskId + '"></clipPath>\n        <filter id="grayscale">\n        <feColorMatrix type="matrix" values="0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0 0 0 1 0"/>\n        </filter>');
 
-    // SparksGrove
-    // const extent = context.select('.extent')[0][0];
-    // if (extent && extent.width && extent.height && extent.x) {
-    //     context.select(`#${$$.chartExtentMaskId}`).html(`<rect width="${extent.width.baseVal.value}" height="${extent.height.baseVal.value}" x="${extent.x.baseVal.value}" />`);
-    // }
-
     // ATTENTION: This must be called AFTER chart added
     // Add Axis
     $$.axes.subx = context.append("g").attr("class", CLASS.axisX).attr("transform", $$.getTranslate('subx')).attr("clip-path", config.axis_rotated ? "" : $$.clipPathForXAxis).style("visibility", config.subchart_axis_x_show ? visibility : 'hidden');
