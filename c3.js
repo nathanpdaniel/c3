@@ -1322,6 +1322,10 @@ c3_chart_internal_fn.initWithData = function (data) {
     // Add Axis
     $$.axis.init();
 
+    if (config.grid_focus_lines_front) {
+        $$.initGridFocusLines();
+    }
+
     // Set targets
     $$.updateTargets($$.data.targets);
 
@@ -1980,10 +1984,19 @@ c3_chart_internal_fn.bindResize = function () {
         config.onresized.call($$);
     });
 
+    var resizeIfElementDisplayed = function resizeIfElementDisplayed() {
+        // if element not displayed skip it
+        if (!$$.api.element.offsetParent) {
+            return;
+        }
+
+        $$.resizeFunction();
+    };
+
     if (window.attachEvent) {
-        window.attachEvent('onresize', $$.resizeFunction);
+        window.attachEvent('onresize', resizeIfElementDisplayed);
     } else if (window.addEventListener) {
-        window.addEventListener('resize', $$.resizeFunction, false);
+        window.addEventListener('resize', resizeIfElementDisplayed, false);
     } else {
         // fallback to this, if this is a very old browser
         var wrapper = window.onresize;
@@ -1997,7 +2010,14 @@ c3_chart_internal_fn.bindResize = function () {
         }
         // add this graph to the wrapper, we will be removed if the user calls destroy
         wrapper.add($$.resizeFunction);
-        window.onresize = wrapper;
+        window.onresize = function () {
+            // if element not displayed skip it
+            if (!$$.api.element.offsetParent) {
+                return;
+            }
+
+            wrapper();
+        };
     }
 };
 
@@ -2803,6 +2823,7 @@ if (!Function.prototype.bind) {
 
         // Add createSVGPathSeg* functions to window.SVGPathElement.
         // Spec: http://www.w3.org/TR/SVG11/single-page.html#paths-Interfacewindow.SVGPathElement.
+        if (!window.SVGPathElement) window.SVGPathElement = { prototype: {} };
         window.SVGPathElement.prototype.createSVGPathSegClosePath = function () {
             return new window.SVGPathSegClosePath(undefined);
         };
@@ -5160,6 +5181,7 @@ c3_chart_internal_fn.getDefaultConfig = function () {
         grid_y_lines: [],
         grid_y_ticks: 10,
         grid_focus_show: true,
+        grid_focus_lines_front: false,
         grid_lines_front: true,
         // point - point of each data
         point_show: true,
@@ -6551,7 +6573,7 @@ c3_chart_internal_fn.initGrid = function () {
     if (config.grid_y_show) {
         $$.grid.append('g').attr('class', CLASS.ygrids);
     }
-    if (config.grid_focus_show) {
+    if (config.grid_focus_show && !config.grid_focus_lines_front) {
         $$.grid.append('g').attr("class", CLASS.xgridFocus).append('line').attr('class', CLASS.xgridFocus);
     }
     $$.xgrid = d3.selectAll([]);
@@ -6566,6 +6588,11 @@ c3_chart_internal_fn.initGridLines = function () {
     $$.gridLines.append('g').attr("class", CLASS.xgridLines);
     $$.gridLines.append('g').attr('class', CLASS.ygridLines);
     $$.xgridLines = d3.selectAll([]);
+};
+c3_chart_internal_fn.initGridFocusLines = function () {
+    var $$ = this,
+        d3 = $$.d3;
+    $$.gridLines.append('g').attr("class", CLASS.xgridFocus).append('line').attr('class', CLASS.xgridFocus);
 };
 c3_chart_internal_fn.updateXGrid = function (withoutUpdate) {
     var $$ = this,
@@ -8541,14 +8568,31 @@ c3_chart_internal_fn.initSubchart = function () {
     // Define g for chart area
     context.append('g').attr("clip-path", $$.clipPathForSubchart).attr('class', CLASS.chart);
 
+    // SparksGrove
+    $$.chartExtentMaskId = 'c3PathExt-' + Date.now();
+    context.select('.' + CLASS.chart).append("g").attr("class", CLASS.chartBars).attr('style', 'clip-path: url(#' + $$.chartExtentMaskId + ')');
+
     // Define g for bar chart area
-    context.select('.' + CLASS.chart).append("g").attr("class", CLASS.chartBars);
+    context.select('.' + CLASS.chart).append("g").attr("class", CLASS.chartBars).attr('style', 'clip-path: url(#' + $$.chartExtentMaskId + ')');
+
+    // SparksGrove
+    // Define g for subchart backgrounds
+    context.select('.' + CLASS.chart).append("g").attr("class", CLASS.chartBars + '-bg').attr('style', 'opacity: .25; mix-blend-mode: lighten;').attr('filter', 'url(#grayscale)');
+    context.select('.' + CLASS.chart).append("g").attr("class", CLASS.chartLines + '-bg').attr('style', 'opacity: .25; mix-blend-mode: lighten;').attr('filter', 'url(#grayscale)');
 
     // Define g for line chart area
     context.select('.' + CLASS.chart).append("g").attr("class", CLASS.chartLines);
 
     // Add extent rect for Brush
     context.append("g").attr("clip-path", $$.clipPath).attr("class", CLASS.brush).call($$.brush);
+
+    // SparksGrove
+    context.select('.' + CLASS.chart).append("defs");
+    context.select('.' + CLASS.chart + ' defs').html('<clipPath id="' + $$.chartExtentMaskId + '"></clipPath>\n        <filter id="grayscale">\n        <feColorMatrix type="matrix" values="0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0 0 0 1 0"/>\n        </filter>');
+
+    // SparksGrove
+    var extent = context.select('.extent')[0][0];
+    context.select('#' + $$.chartExtentMaskId).html('<rect width="' + extent.width.baseVal.value + '" height="' + extent.height.baseVal.value + '" x="' + extent.x.baseVal.value + '" />');
 
     // ATTENTION: This must be called AFTER chart added
     // Add Axis
@@ -8567,6 +8611,7 @@ c3_chart_internal_fn.updateTargetsForSubchart = function (targets) {
         classChartLine = $$.classChartLine.bind($$),
         classLines = $$.classLines.bind($$),
         classAreas = $$.classAreas.bind($$);
+    var contextBarBgUpdate, contextBarBgEnter, contextLineBgUpdate, contextLineBgEnter;
 
     if (config.subchart_show) {
         //-- Bar --//
@@ -8585,6 +8630,15 @@ c3_chart_internal_fn.updateTargetsForSubchart = function (targets) {
 
         //-- Brush --//
         context.selectAll('.' + CLASS.brush + ' rect').attr(config.axis_rotated ? "width" : "height", config.axis_rotated ? $$.width2 : $$.height2);
+
+        //-- Backgrounds --//
+        contextBarBgUpdate = context.select('.' + CLASS.chartBars + '-bg').selectAll('.' + CLASS.chartBar).data(targets).attr('class', classChartBar);
+        contextBarBgEnter = contextBarBgUpdate.enter().append('g').style('opacity', 0).attr('class', classChartBar);
+        contextBarBgEnter.append('g').attr("class", classBars);
+        contextLineBgUpdate = context.select('.' + CLASS.chartLines + '-bg').selectAll('.' + CLASS.chartLine).data(targets).attr('class', classChartLine);
+        contextLineBgEnter = contextLineBgUpdate.enter().append('g').style('opacity', 0).attr('class', classChartLine);
+        contextLineBgEnter.append("g").attr("class", classLines);
+        contextLineBgEnter.append("g").attr("class", classAreas);
     }
 };
 c3_chart_internal_fn.updateBarForSubchart = function (durationForExit) {
@@ -8655,6 +8709,10 @@ c3_chart_internal_fn.redrawSubchart = function (withSubchart, transitions, durat
             $$.redrawBarForSubchart(drawBarOnSub, duration, duration);
             $$.redrawLineForSubchart(drawLineOnSub, duration, duration);
             $$.redrawAreaForSubchart(drawAreaOnSub, duration, duration);
+
+            // SparksGrove Extent Update
+            var extent = $$.context.select('.extent')[0][0];
+            $$.context.select('#' + $$.chartExtentMaskId).html('<rect width="' + extent.width.baseVal.value + '" height="' + extent.height.baseVal.value + '" x="' + extent.x.baseVal.value + '" />');
         }
     }
 };
@@ -8669,6 +8727,10 @@ c3_chart_internal_fn.redrawForBrush = function () {
         withDimension: false
     });
     $$.config.subchart_onbrush.call($$.api, x.orgDomain());
+
+    // SparksGrove - EXTENT UPDATE
+    var extent = $$.context.select('.extent')[0][0];
+    $$.context.select('#' + $$.chartExtentMaskId).html('<rect width="' + extent.width.baseVal.value + '" height="' + extent.height.baseVal.value + '" x="' + extent.x.baseVal.value + '" />');
 };
 c3_chart_internal_fn.transformContext = function (withTransition, transitions) {
     var $$ = this,

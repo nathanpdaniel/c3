@@ -25,9 +25,20 @@ c3_chart_internal_fn.initSubchart = function () {
         .attr("clip-path", $$.clipPathForSubchart)
         .attr('class', CLASS.chart);
 
+    // SparksGrove
+    $$.chartExtentMaskId = `c3PathExt-${Date.now()}`;
+    context.select('.' + CLASS.chart).append("g")
+        .attr("class", CLASS.chartBars).attr('style', `clip-path: url(#${$$.chartExtentMaskId})`);
+
     // Define g for bar chart area
     context.select('.' + CLASS.chart).append("g")
-        .attr("class", CLASS.chartBars);
+        .attr("class", CLASS.chartBars)
+        .attr('style', `clip-path: url(#${$$.chartExtentMaskId})`);
+    
+    // SparksGrove
+    // Define g for subchart backgrounds
+    context.select('.' + CLASS.chart).append("g").attr("class", CLASS.chartBars + '-bg').attr('style', 'opacity: .25; mix-blend-mode: lighten;').attr('filter', 'url(#grayscale)');
+    context.select('.' + CLASS.chart).append("g").attr("class", CLASS.chartLines + '-bg').attr('style', 'opacity: .25; mix-blend-mode: lighten;').attr('filter', 'url(#grayscale)');
 
     // Define g for line chart area
     context.select('.' + CLASS.chart).append("g")
@@ -38,6 +49,17 @@ c3_chart_internal_fn.initSubchart = function () {
         .attr("clip-path", $$.clipPath)
         .attr("class", CLASS.brush)
         .call($$.brush);
+    
+    // SparksGrove
+    context.select('.' + CLASS.chart).append("defs");
+    context.select('.' + CLASS.chart + ' defs').html(`<clipPath id="${$$.chartExtentMaskId}"></clipPath>
+        <filter id="grayscale">
+        <feColorMatrix type="matrix" values="0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0 0 0 1 0"/>
+        </filter>`);
+    
+    // SparksGrove
+    const extent = context.select('.extent')[0][0];
+    context.select(`#${$$.chartExtentMaskId}`).html(`<rect width="${extent.width.baseVal.value}" height="${extent.height.baseVal.value}" x="${extent.x.baseVal.value}" />`);
 
     // ATTENTION: This must be called AFTER chart added
     // Add Axis
@@ -55,6 +77,7 @@ c3_chart_internal_fn.updateTargetsForSubchart = function (targets) {
         classChartLine = $$.classChartLine.bind($$),
         classLines = $$.classLines.bind($$),
         classAreas = $$.classAreas.bind($$);
+    var contextBarBgUpdate, contextBarBgEnter, contextLineBgUpdate, contextLineBgEnter;
 
     if (config.subchart_show) {
         //-- Bar --//
@@ -85,6 +108,15 @@ c3_chart_internal_fn.updateTargetsForSubchart = function (targets) {
         //-- Brush --//
         context.selectAll('.' + CLASS.brush + ' rect')
             .attr(config.axis_rotated ? "width" : "height", config.axis_rotated ? $$.width2 : $$.height2);
+        
+        //-- Backgrounds --//
+        contextBarBgUpdate = context.select('.' + CLASS.chartBars + '-bg').selectAll('.' + CLASS.chartBar).data(targets).attr('class', classChartBar);
+        contextBarBgEnter = contextBarBgUpdate.enter().append('g').style('opacity', 0).attr('class', classChartBar);
+        contextBarBgEnter.append('g').attr("class", classBars);
+        contextLineBgUpdate = context.select('.' + CLASS.chartLines + '-bg').selectAll('.' + CLASS.chartLine).data(targets).attr('class', classChartLine);
+        contextLineBgEnter = contextLineBgUpdate.enter().append('g').style('opacity', 0).attr('class', classChartLine);
+        contextLineBgEnter.append("g").attr("class", classLines);
+        contextLineBgEnter.append("g").attr("class", classAreas);
     }
 };
 c3_chart_internal_fn.updateBarForSubchart = function (durationForExit) {
@@ -175,6 +207,10 @@ c3_chart_internal_fn.redrawSubchart = function (withSubchart, transitions, durat
             $$.redrawBarForSubchart(drawBarOnSub, duration, duration);
             $$.redrawLineForSubchart(drawLineOnSub, duration, duration);
             $$.redrawAreaForSubchart(drawAreaOnSub, duration, duration);
+
+            // SparksGrove Extent Update
+            const extent = $$.context.select('.extent')[0][0];
+            $$.context.select(`#${$$.chartExtentMaskId}`).html(`<rect width="${extent.width.baseVal.value}" height="${extent.height.baseVal.value}" x="${extent.x.baseVal.value}" />`);
         }
     }
 };
@@ -188,6 +224,10 @@ c3_chart_internal_fn.redrawForBrush = function () {
         withDimension: false
     });
     $$.config.subchart_onbrush.call($$.api, x.orgDomain());
+
+    // SparksGrove - EXTENT UPDATE
+    const extent = $$.context.select('.extent')[0][0];
+    $$.context.select(`#${$$.chartExtentMaskId}`).html(`<rect width="${extent.width.baseVal.value}" height="${extent.height.baseVal.value}" x="${extent.x.baseVal.value}" />`);
 };
 c3_chart_internal_fn.transformContext = function (withTransition, transitions) {
     var $$ = this, subXAxis;
