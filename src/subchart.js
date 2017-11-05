@@ -60,10 +60,10 @@ c3_chart_internal_fn.initSubchart = function () {
         </filter>`);
     
     // SparksGrove
-    const extent = context.select('.extent')[0][0];
-    if (extent && extent.width && extent.height && extent.x) {
-        context.select(`#${$$.chartExtentMaskId}`).html(`<rect width="${extent.width.baseVal.value}" height="${extent.height.baseVal.value}" x="${extent.x.baseVal.value}" />`);
-    }
+    // const extent = context.select('.extent')[0][0];
+    // if (extent && extent.width && extent.height && extent.x) {
+    //     context.select(`#${$$.chartExtentMaskId}`).html(`<rect width="${extent.width.baseVal.value}" height="${extent.height.baseVal.value}" x="${extent.x.baseVal.value}" />`);
+    // }
 
     // ATTENTION: This must be called AFTER chart added
     // Add Axis

@@ -8591,10 +8591,10 @@ c3_chart_internal_fn.initSubchart = function () {
     context.select('.' + CLASS.chart + ' defs').html('<clipPath id="' + $$.chartExtentMaskId + '"></clipPath>\n        <filter id="grayscale">\n        <feColorMatrix type="matrix" values="0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0 0 0 1 0"/>\n        </filter>');
 
     // SparksGrove
-    var extent = context.select('.extent')[0][0];
-    if (extent && extent.width && extent.height && extent.x) {
-        context.select('#' + $$.chartExtentMaskId).html('<rect width="' + extent.width.baseVal.value + '" height="' + extent.height.baseVal.value + '" x="' + extent.x.baseVal.value + '" />');
-    }
+    // const extent = context.select('.extent')[0][0];
+    // if (extent && extent.width && extent.height && extent.x) {
+    //     context.select(`#${$$.chartExtentMaskId}`).html(`<rect width="${extent.width.baseVal.value}" height="${extent.height.baseVal.value}" x="${extent.x.baseVal.value}" />`);
+    // }
 
     // ATTENTION: This must be called AFTER chart added
     // Add Axis
