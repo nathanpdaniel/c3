@@ -42,7 +42,9 @@ c3_chart_internal_fn.initSubchart = function () {
 
     // Define g for line chart area
     context.select('.' + CLASS.chart).append("g")
-        .attr("class", CLASS.chartLines);
+        .attr("class", CLASS.chartLines)
+        .attr('style', `clip-path: url(#${$$.chartExtentMaskId})`);
+        
 
     // Add extent rect for Brush
     context.append("g")

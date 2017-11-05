@@ -1322,7 +1322,7 @@ c3_chart_internal_fn.initWithData = function (data) {
     // Add Axis
     $$.axis.init();
 
-    if (config.grid_focus_lines_front) {
+    if (config.grid_focus_lines_front && config.grid_focus_show) {
         $$.initGridFocusLines();
     }
 
@@ -8581,7 +8581,7 @@ c3_chart_internal_fn.initSubchart = function () {
     context.select('.' + CLASS.chart).append("g").attr("class", CLASS.chartLines + '-bg').attr('style', 'opacity: .25; mix-blend-mode: lighten;').attr('filter', 'url(#grayscale)');
 
     // Define g for line chart area
-    context.select('.' + CLASS.chart).append("g").attr("class", CLASS.chartLines);
+    context.select('.' + CLASS.chart).append("g").attr("class", CLASS.chartLines).attr('style', 'clip-path: url(#' + $$.chartExtentMaskId + ')');
 
     // Add extent rect for Brush
     context.append("g").attr("clip-path", $$.clipPath).attr("class", CLASS.brush).call($$.brush);
